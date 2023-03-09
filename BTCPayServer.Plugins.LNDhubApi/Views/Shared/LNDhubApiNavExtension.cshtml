@@ -1,0 +1,22 @@
+@using BTCPayServer
+@using BTCPayServer.Abstractions.Extensions
+@using BTCPayServer.Client
+@using BTCPayServer.Plugins.LNDhubApi.Views
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{ var store = Context.GetStoreData(); }
+
+@if (store != null)
+{
+    <li class="nav-item" permission="@Policies.CanModifyStoreSettings">
+        <a asp-controller="UILNDhubApi" asp-action="Index" asp-route-storeId="@store.Id" class="nav-link @ViewData.IsActivePage(LNDhubApiNavPages.Index)">
+            <svg role="img" class="icon icon-plugin" viewBox="0 0 24 24" fill="none">
+                <path d="M8.308 4.615h7.384a3.703 3.703 0 0 1 3.693 3.693v7.384a3.703 3.703 0 0 1-3.693 3.692H8.308a3.703 3.703 0 0 1-3.693-3.692V8.308a3.703 3.703 0 0 1 3.693-3.693z" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10"/>
+                <path d="M8.307 7.44h7.385a3.703 3.703 0 0 1 3.692 3.692v4.57a3.703 3.703 0 0 1-3.692 3.693H8.307a3.703 3.703 0 0 1-3.692-3.692v-4.57A3.703 3.703 0 0 1 8.307 7.44z" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10"/>
+                <path d="M8.307 10.44h7.385a3.703 3.703 0 0 1 3.692 3.692v1.57a3.703 3.703 0 0 1-3.692 3.693H8.307a3.703 3.703 0 0 1-3.692-3.692v-1.57a3.703 3.703 0 0 1 3.692-3.693z" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10"/>
+                <path d="M16.395 12.1a.256.256 0 0 0-.17.075l-2.864 2.805a.305.305 0 0 0-.067.306.248.248 0 0 0 .236.176h.947l-.845 2.231a.303.303 0 0 0 .084.334.21.21 0 0 0 .144.046.24.24 0 0 0 .169-.074l2.898-2.898a.299.299 0 0 0 .085-.214c0-.157-.11-.277-.254-.277h-.93l.803-2.13a.303.303 0 0 0-.084-.333.322.322 0 0 0-.152-.047Z" fill="currentColor"/>
+            </svg>
+            <span>LNDhub API</span>
+        </a>
+    </li>
+}

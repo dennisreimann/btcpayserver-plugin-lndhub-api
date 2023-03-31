@@ -49,8 +49,8 @@ You will land on the following screen and have to …
 
 ### Alby
 
-In the Alby account dropdown, choos "Add a new account".
-On the "Add a new lightning account" choose "LNDHub (BlueWallet)".
+In the Alby account dropdown, choose "Add a new account".
+On the "Add a new lightning account" choose "LNDhub (BlueWallet)".
 
 Now you can either copy and paste the account URL from the LNDhub API plugin page or scan the QR code.
 Once the account is initialized, you should see a "Success!" message.

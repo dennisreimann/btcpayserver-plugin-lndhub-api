@@ -3,9 +3,9 @@
 A plugin for [BTCPay Server](https://github.com/btcpayserver) to add a LNDhub-compatible API for stores.
 This means that your store's Lightning wallet can be used with the following wallet apps:
 
-* [BlueWallet](https://bluewallet.io/)
-* [Zeus](https://zeusln.app/)
-* [Alby](https://getalby.com/)
+- [BlueWallet](https://bluewallet.io/)
+- [Zeus](https://zeusln.app/)
+- [Alby](https://getalby.com/)
 
 These wallets offer import features, so that you can easily import your store's Lightning wallets into these apps.
 
@@ -37,15 +37,15 @@ Once the wallet is imported, you can also set a name.
 
 In Zeus you can use this path to import the wallet:
 
-* Open the settings by clicking on the node icon in the top left corner.
-* In the settings click the node (first row) to get to the list of nodes.
-* Click the plus icon in the top right corner to add a new node/wallet.
+- Open the settings by clicking on the node icon in the top left corner.
+- In the settings click the node (first row) to get to the list of nodes.
+- Click the plus icon in the top right corner to add a new node/wallet.
 
 You will land on the following screen and have to …
 
-* Choose "LNDHub" as the "Node Interface"
-* Enable the "Existing account" toggle
-* Click the "Scan LNDHub QR" button and scan the code
+- Choose "LNDHub" as the "Node Interface"
+- Enable the "Existing account" toggle
+- Click the "Scan LNDHub QR" button and scan the code
 
 ### Alby
 
@@ -54,3 +54,7 @@ On the "Add a new lightning account" choose "LNDhub (BlueWallet)".
 
 Now you can either copy and paste the account URL from the LNDhub API plugin page or scan the QR code.
 Once the account is initialized, you should see a "Success!" message.
+
+## Support this plugin
+
+[![Support this plugin](./docs/img/support.png)](lightning:LNURL1DP68GURN8GHJ7AMPD3KX2AR0VEEKZAR0WD5XJTNRDAKJ7TNHV4KXCTTTDEHHWM30D3H82UNVWQHKXUN0WAJX2ER9V9E8G6PN8QSKVTEZ)

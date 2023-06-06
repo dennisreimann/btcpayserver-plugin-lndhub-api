@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using BTCPayServer.Client;
 using BTCPayServer.Data;
 using BTCPayServer.Plugins.LNDhubApi.Models;
 using BTCPayServer.Services.Stores;
@@ -25,9 +26,10 @@ public class LNDhubApiAuthenticator
         var settings = store != null ? await _storeRepository.GetSettingAsync<LNDhubApiSettings>(store.Id, LNDhubApiPlugin.SettingsKey) : null;
         var accessToken = settings is { Enabled: true } ? settings.AccessToken : null;
         var accessTokenMatches = accessToken != null && accessToken == password;
-        var isStoreOwner = store is { Role: StoreRoles.Owner } && !await _userManager.IsLockedOutAsync(user);
-
-        return isStoreOwner && accessTokenMatches ? $"{login}:{password}" : null;
+        var role = store?.GetStoreRoleOfUser(user.Id);
+        var isStoreOwner = role != null && role.Permissions.Contains(Policies.CanModifyStoreSettings);
+        var isActiveUser = !await _userManager.IsLockedOutAsync(user);
+        return isStoreOwner && isActiveUser && accessTokenMatches ? $"{login}:{password}" : null;
     }
 
     public async Task<bool> HasAccess(string storeId, string token)

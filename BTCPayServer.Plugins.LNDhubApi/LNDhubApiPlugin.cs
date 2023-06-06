@@ -10,7 +10,7 @@ namespace BTCPayServer.Plugins.LNDhubApi;
 public class LNDhubApiPlugin : BaseBTCPayServerPlugin
 {
     internal const string SettingsKey = "lndhub-api";
-    
+
     public override IBTCPayServerPlugin.PluginDependency[] Dependencies { get; } =
     {
         new () { Identifier = nameof(BTCPayServer), Condition = ">=1.10.0" }

@@ -55,6 +55,8 @@ On the "Add a new lightning account" choose "LNDhub (BlueWallet)".
 Now you can either copy and paste the account URL from the LNDhub API plugin page or scan the QR code.
 Once the account is initialized, you should see a "Success!" message.
 
+There is also the possibility to [connect BTCPay Server to the Alby Browser Extension](https://guides.getalby.com/overall-guide/alby-browser-extension/connect-lightning-wallets-and-nodes-to-the-alby-extension/connect-btcpay-server).
+
 ## Support this plugin
 
 [![Support this plugin](./docs/img/support.png)](lightning:LNURL1DP68GURN8GHJ7AMPD3KX2AR0VEEKZAR0WD5XJTNRDAKJ7TNHV4KXCTTTDEHHWM30D3H82UNVWQHKXUN0WAJX2ER9V9E8G6PN8QSKVTEZ)

@@ -12,9 +12,7 @@ using BTCPayServer.Lightning.LNDhub.Models;
 using BTCPayServer.Payments;
 using BTCPayServer.Payments.Lightning;
 using BTCPayServer.Plugins.LNDhubApi.Authentication;
-using BTCPayServer.Security;
 using BTCPayServer.Services;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
@@ -73,14 +71,14 @@ public class LndHubApiController : ControllerBase
         AuthResponse result = null;
         switch (type)
         {
-            case "auth":
-                var accessToken = await _authenticator.AccessToken(storeId, req.Login, req.Password);
-                result = new AuthResponse { AccessToken = accessToken, RefreshToken = accessToken };
-                break;
-
             // fake this case as we don't do OAuth
             case "refresh_token":
                 result = new AuthResponse { AccessToken = req.RefreshToken, RefreshToken = req.RefreshToken };
+                break;
+
+            default:
+                var accessToken = await _authenticator.AccessToken(storeId, req.Login, req.Password);
+                result = new AuthResponse { AccessToken = accessToken, RefreshToken = accessToken };
                 break;
         }
 

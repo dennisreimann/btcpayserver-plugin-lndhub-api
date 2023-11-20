@@ -38,7 +38,7 @@ public class UILNDhubApiController : Controller
             var userId = _userManager.GetUserId(User);
             var req = HttpContext.Request;
             var baseUrl = $"{req.Scheme}://{req.Host}{req.PathBase.ToUriComponent()}";
-            var endpoint = new Uri($"{baseUrl}/plugins/lndhub-api/{storeId}/api");
+            var endpoint = new Uri($"{baseUrl}/plugins/lndhub-api/{storeId}/api/");
             vm.AccessUrl = $"lndhub://{userId}:{settings.AccessToken}@{endpoint}";
         }
 

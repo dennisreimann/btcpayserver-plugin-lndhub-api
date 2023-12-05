@@ -40,35 +40,22 @@ public class LNDhubApiExceptionFilter : Attribute, IExceptionFilter
 [LNDhubApiExceptionFilter]
 [EnableCors(CorsPolicies.All)]
 [Route("~/plugins/lndhub-api/{storeId}/api")]
-public class LndHubApiController : ControllerBase
+public class LndHubApiController(
+    IOptionsMonitor<IdentityOptions> identityOptions,
+    BTCPayNetworkProvider networkProvider,
+    IBTCPayServerClientFactory clientFactory,
+    LNDhubApiAuthenticator authenticator,
+    PoliciesSettings policiesSettings)
+    : ControllerBase
 {
     private const string CryptoCode = "BTC";
-    private readonly IOptionsMonitor<IdentityOptions> _identityOptions;
-    private readonly BTCPayNetworkProvider _networkProvider;
-    private readonly IBTCPayServerClientFactory _clientFactory;
-    private readonly LNDhubApiAuthenticator _authenticator;
-    private readonly PoliciesSettings _policiesSettings;
-
-    public LndHubApiController(
-        IOptionsMonitor<IdentityOptions> identityOptions,
-        BTCPayNetworkProvider networkProvider,
-        IBTCPayServerClientFactory clientFactory,
-        LNDhubApiAuthenticator authenticator,
-        PoliciesSettings policiesSettings)
-    {
-        _networkProvider = networkProvider;
-        _identityOptions = identityOptions;
-        _clientFactory = clientFactory;
-        _authenticator = authenticator;
-        _policiesSettings = policiesSettings;
-    }
 
     // https://github.com/BlueWallet/LndHub/blob/master/doc/Send-requirements.md#post-authtypeauth
     [AllowAnonymous]
     [HttpPost("auth")]
     public async Task<IActionResult> Auth(string storeId, AuthRequest req, [FromQuery] string type)
     {
-        AuthResponse result = null;
+        AuthResponse result;
         switch (type)
         {
             // fake this case as we don't do OAuth
@@ -77,7 +64,7 @@ public class LndHubApiController : ControllerBase
                 break;
 
             default:
-                var accessToken = await _authenticator.AccessToken(storeId, req.Login, req.Password);
+                var accessToken = await authenticator.AccessToken(storeId, req.Login, req.Password);
                 result = new AuthResponse { AccessToken = accessToken, RefreshToken = accessToken };
                 break;
         }
@@ -120,7 +107,7 @@ public class LndHubApiController : ControllerBase
     [HttpGet("gettxs")]
     public async Task<IActionResult> Transactions(string storeId, [FromQuery] int? limit, [FromQuery] int? offset, CancellationToken cancellationToken = default)
     {
-        var network = _networkProvider.GetNetwork<BTCPayNetwork>(CryptoCode);
+        var network = networkProvider.GetNetwork<BTCPayNetwork>(CryptoCode);
         var client = await Client();
         var payments = await client.GetLightningPayments(storeId, CryptoCode, false, offset, cancellationToken);
         var transactions = payments?.Select(p => ToTransactionData(p, network))
@@ -132,14 +119,14 @@ public class LndHubApiController : ControllerBase
     [HttpGet("getuserinvoices")]
     public async Task<IActionResult> UserInvoices(string storeId, CancellationToken cancellationToken = default)
     {
-        var network = _networkProvider.GetNetwork<BTCPayNetwork>(CryptoCode);
+        var network = networkProvider.GetNetwork<BTCPayNetwork>(CryptoCode);
         var client = await Client();
         var invoices = await client.GetLightningInvoices(storeId, CryptoCode, false, null, cancellationToken);
         var userInvoices = invoices?.Select(i =>
         {
             var bolt11 = BOLT11PaymentRequest.Parse(i.BOLT11, network.NBitcoinNetwork);
             return ToInvoiceData(i, bolt11);
-        }) ?? new List<InvoiceData>();;
+        }) ?? new List<InvoiceData>();
         return Ok(userInvoices);
     }
 
@@ -159,7 +146,7 @@ public class LndHubApiController : ControllerBase
     [HttpGet("decodeinvoice")]
     public IActionResult DecodeInvoice(string storeId, [FromQuery] string invoice, CancellationToken cancellationToken = default)
     {
-        var network = _networkProvider.GetNetwork<BTCPayNetwork>(CryptoCode);
+        var network = networkProvider.GetNetwork<BTCPayNetwork>(CryptoCode);
         try
         {
             var bolt11 = BOLT11PaymentRequest.Parse(invoice, network.NBitcoinNetwork);
@@ -204,7 +191,7 @@ public class LndHubApiController : ControllerBase
     [HttpPost("addinvoice")]
     public async Task<IActionResult> AddInvoice(string storeId, CreateInvoiceRequest request, CancellationToken cancellationToken = default)
     {
-        var network = _networkProvider.GetNetwork<BTCPayNetwork>(CryptoCode);
+        var network = networkProvider.GetNetwork<BTCPayNetwork>(CryptoCode);
         var client = await Client();
         if (request.Amount < LightMoney.Zero)
         {
@@ -239,7 +226,7 @@ public class LndHubApiController : ControllerBase
     public async Task<IActionResult> PayInvoice(string storeId, PayInvoiceRequest request, CancellationToken cancellationToken = default)
     {
         var client = await Client();
-        var network = _networkProvider.GetNetwork<BTCPayNetwork>(CryptoCode);
+        var network = networkProvider.GetNetwork<BTCPayNetwork>(CryptoCode);
 
         if (string.IsNullOrEmpty(request.PaymentRequest) ||
             !BOLT11PaymentRequest.TryParse(request.PaymentRequest, out var bolt11, network.NBitcoinNetwork))
@@ -346,14 +333,14 @@ public class LndHubApiController : ControllerBase
 
     private async Task<BTCPayServerClient> Client()
     {
-        var userId = User.Claims.First(c => c.Type == _identityOptions.CurrentValue.ClaimsIdentity.UserIdClaimType).Value;
+        var userId = User.Claims.First(c => c.Type == identityOptions.CurrentValue.ClaimsIdentity.UserIdClaimType).Value;
         var storeId = User.Claims.First(c => c.Type == LNDhubApiClaimTypes.StoreId).Value;
         var store = HttpContext.GetStoreData();
 
         // Check that Lightning is enabled
         var lnId = new PaymentMethodId(CryptoCode, PaymentTypes.LightningLike);
         var lightning = store
-            .GetSupportedPaymentMethods(_networkProvider)
+            .GetSupportedPaymentMethods(networkProvider)
             .OfType<LightningSupportedPaymentMethod>()
             .FirstOrDefault(m => m.PaymentId == lnId);
         var excludeFilters = store.GetStoreBlob().GetExcludedPaymentMethods();
@@ -361,10 +348,10 @@ public class LndHubApiController : ControllerBase
         if (!isEnabled)
             throw new Exception("The store's Lightning node is not set up");
 
-        var canUseInternal = User.IsInRole(Roles.ServerAdmin) || _policiesSettings.AllowLightningInternalNodeForAll;
+        var canUseInternal = User.IsInRole(Roles.ServerAdmin) || policiesSettings.AllowLightningInternalNodeForAll;
         if (lightning.IsInternalNode && !canUseInternal)
             throw new Exception("The internal Lightning node can only be used by admins");
 
-        return await _clientFactory.Create(userId, new [] { storeId }, HttpContext);
+        return await clientFactory.Create(userId, new [] { storeId }, HttpContext);
     }
 }

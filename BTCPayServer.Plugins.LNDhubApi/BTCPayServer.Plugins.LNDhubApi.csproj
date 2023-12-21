@@ -8,7 +8,7 @@
     <Product>LNDhub API</Product>
     <Description>Use your store's Lightning node with LNDhub API-compatible apps, such as BlueWallet, Zeus and Alby.</Description>
     <Authors>d11n</Authors>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
   </PropertyGroup>
 
   <!-- Plugin development properties -->

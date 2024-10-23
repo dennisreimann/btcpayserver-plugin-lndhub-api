@@ -10,11 +10,11 @@
 <h2 class="mt-1 mb-4">@ViewData["Title"]</h2>
 <div class="row">
     <div class="col-xl-8 col-xxl-constrain">
-        <h3 class="mb-4">Connect LNDhub-compatible wallet</h3>
+        <h3 class="mb-4" text-translate="true">Connect LNDhub-compatible wallet</h3>
         <form method="post" class="d-flex align-items-center gap-3 mb-3">
             <button type="submit" class="btcpay-toggle @if (enabled) { @("btcpay-toggle--active") }" name="Enabled" value="@(enabled ? "false" : "true")" id="LNDhubApi-Enabled">@(enabled ? "Disable" : "Enable")</button>
             <div>
-                <span>Enable</span>
+                <span text-translate="true">Enable</span>
                 <div class="form-text" style="max-width:30rem">
                     You can connect any wallet that is compatible with the LNDhub protocol.
                     This is supported by <a href="https://bluewallet.io/" target="_blank" rel="noreferrer noopener">BlueWallet</a>,
@@ -27,8 +27,8 @@
         @if (enabled)
         {
             <div class="alert alert-warning alert-dismissible my-4" role="alert">
-                <h5 class="alert-heading">Treat the credentials as confidential information!</h5>
-                <p class="mb-0">
+                <h5 class="alert-heading" text-translate="true">Treat the credentials as confidential information!</h5>
+                <p class="mb-0" text-translate="true">
                     These QR code and access URL below allow unrestricted access to your store's Lightning wallet.
                     Do not share these credentials with others.
                 </p>
@@ -47,25 +47,23 @@
                     <div class="input-group mt-3">
                         <div class="form-floating">
                             <input id="LNDhubApi-LNDhubAccessUrl" class="form-control-plaintext" readonly="readonly" value="@Model.AccessUrl">
-                            <label for="LNDhubApi-LNDhubAccessUrl">Access URL</label>
+                            <label for="LNDhubApi-LNDhubAccessUrl" text-translate="true">Access URL</label>
                         </div>
                         <button type="button" class="btn btn-link" data-clipboard-target="#LNDhubApi-LNDhubAccessUrl">
-                            @await Component.InvokeAsync("Icon", new { symbol = "copy" })
+                            @await Component.InvokeAsync("Icon", new { symbol = "actions-copy" })
                         </button>
                     </div>
                 </div>
             </div>
 
             <div class="mt-4">
-                <button class="btn btn-secondary" type="button" id="LNDhubApi-ToggleLNDhubCredentials" data-bs-toggle="collapse" data-bs-target="#LNDhubApi-LNDhubCredentials" aria-expanded="false" aria-controls="LNDhubApi-LNDhubCredentials">Show credentials</button>
+                <button class="btn btn-secondary" type="button" id="LNDhubApi-ToggleLNDhubCredentials" data-bs-toggle="collapse" data-bs-target="#LNDhubApi-LNDhubCredentials" aria-expanded="false" aria-controls="LNDhubApi-LNDhubCredentials" text-translate="true">Show credentials</button>
             </div>
 
-            <h3 class="mt-5 mb-3">Regenerate Access Token</h3>
-            <p>
-                Regenerating the access token invalidates the current one, so that you have to reconnect your wallet.
-            </p>
+            <h3 class="mt-5 mb-3" text-translate="true">Regenerate Access Token</h3>
+            <p text-translate="true">Regenerating the access token invalidates the current one, so that you have to reconnect your wallet.</p>
             <form method="post">
-                <button type="submit" class="btn btn-outline-danger" name="Regenerate" value="true" id="LNDhubApi-Regenerate">Regenerate Access Token</button>
+                <button type="submit" class="btn btn-outline-danger" name="Regenerate" value="true" id="LNDhubApi-Regenerate" text-translate="true">Regenerate Access Token</button>
             </form>
         }
     </div>

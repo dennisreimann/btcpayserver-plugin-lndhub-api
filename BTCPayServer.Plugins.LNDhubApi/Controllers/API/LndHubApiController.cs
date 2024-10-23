@@ -13,6 +13,7 @@ using BTCPayServer.Payments;
 using BTCPayServer.Payments.Lightning;
 using BTCPayServer.Plugins.LNDhubApi.Authentication;
 using BTCPayServer.Services;
+using BTCPayServer.Services.Invoices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
@@ -45,7 +46,8 @@ public class LndHubApiController(
     BTCPayNetworkProvider networkProvider,
     IBTCPayServerClientFactory clientFactory,
     LNDhubApiAuthenticator authenticator,
-    PoliciesSettings policiesSettings)
+    PoliciesSettings policiesSettings,
+    PaymentMethodHandlerDictionary pmHandlers)
     : ControllerBase
 {
     private const string CryptoCode = "BTC";
@@ -69,7 +71,7 @@ public class LndHubApiController(
                 break;
         }
 
-        return Ok(string.IsNullOrEmpty(result?.AccessToken) ? new ErrorResponse(1) : result);
+        return Ok(string.IsNullOrEmpty(result.AccessToken) ? new ErrorResponse(1) : result);
     }
 
     // https://github.com/BlueWallet/LndHub/blob/master/doc/Send-requirements.md#get-getinfo
@@ -200,8 +202,8 @@ public class LndHubApiController(
         try
         {
             var descHashOnly = request.DescriptionHash is not null;
-            var desc = descHashOnly ? request.DescriptionHash.ToString() : request.Memo;
-            var  req = new CreateLightningInvoiceRequest
+            var desc = descHashOnly ? request.DescriptionHash!.ToString() : request.Memo;
+            var req = new CreateLightningInvoiceRequest
             {
                 Amount = request.Amount,
                 Description = desc,
@@ -243,7 +245,7 @@ public class LndHubApiController(
                 Amount = amount
             };
             var payment = await client.PayLightningInvoice(storeId, CryptoCode, req, cancellationToken);
-            var res = ToPaymentResponse(payment, bolt11);
+            var res = ToPaymentResponse(payment, bolt11!);
 
             return Ok(res);
         }
@@ -252,16 +254,6 @@ public class LndHubApiController(
             return Ok(new ErrorResponse(4, ex.Message));
         }
     }
-
-    /* TODO: We could implement this endpoint too
-    //https://github.com/BlueWallet/LndHub/blob/master/doc/Send-requirements.md#get-getbtc
-    [Authorize(Policy = Policies.CanUseLightningNodeInStore, AuthenticationSchemes = AuthenticationSchemes.Greenfield)]
-    [HttpPost("~/api/v1/stores/{storeId}/lightning/{cryptoCode}/address")]
-    public override Task<IActionResult> GetDepositAddress(string cryptoCode, CancellationToken cancellationToken = default)
-    {
-        return base.GetDepositAddress(cryptoCode, cancellationToken);
-    }
-    */
 
     private InvoiceData ToInvoiceData(LightningInvoiceData t, BOLT11PaymentRequest bolt11)
     {
@@ -336,22 +328,17 @@ public class LndHubApiController(
         var userId = User.Claims.First(c => c.Type == identityOptions.CurrentValue.ClaimsIdentity.UserIdClaimType).Value;
         var storeId = User.Claims.First(c => c.Type == LNDhubApiClaimTypes.StoreId).Value;
         var store = HttpContext.GetStoreData();
+        var pmi = PaymentTypes.LN.GetPaymentMethodId(CryptoCode);
+        var lightning = store.GetPaymentMethodConfig<LightningPaymentMethodConfig>(pmi, pmHandlers);
 
         // Check that Lightning is enabled
-        var lnId = new PaymentMethodId(CryptoCode, PaymentTypes.LightningLike);
-        var lightning = store
-            .GetSupportedPaymentMethods(networkProvider)
-            .OfType<LightningSupportedPaymentMethod>()
-            .FirstOrDefault(m => m.PaymentId == lnId);
-        var excludeFilters = store.GetStoreBlob().GetExcludedPaymentMethods();
-        var isEnabled = lightning != null && !excludeFilters.Match(lightning.PaymentId);
-        if (!isEnabled)
+        if (lightning is null)
             throw new Exception("The store's Lightning node is not set up");
 
         var canUseInternal = User.IsInRole(Roles.ServerAdmin) || policiesSettings.AllowLightningInternalNodeForAll;
         if (lightning.IsInternalNode && !canUseInternal)
             throw new Exception("The internal Lightning node can only be used by admins");
 
-        return await clientFactory.Create(userId, new [] { storeId }, HttpContext);
+        return await clientFactory.Create(userId, [storeId], HttpContext);
     }
 }

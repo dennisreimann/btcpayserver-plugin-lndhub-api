@@ -5,7 +5,6 @@ using BTCPayServer.Abstractions.Contracts;
 using BTCPayServer.Client;
 using BTCPayServer.Data;
 using BTCPayServer.Plugins.LNDhubApi.Models;
-using BTCPayServer.Services.Stores;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +23,7 @@ public class UILNDhubApiController(
     [HttpGet]
     public async Task<IActionResult> Index(string storeId)
     {
-        var settings = await storeRepository.GetSettingAsync<LNDhubApiSettings>(storeId, LNDhubApiPlugin.SettingsKey);
+        var settings = await storeRepository.GetSettingAsync<LNDhubApiSettings>(storeId, LNDhubApiPlugin.SettingsKey) ?? new LNDhubApiSettings();
         var vm = new IndexViewModel { Settings = settings };
         if (settings is { Enabled: true })
         {

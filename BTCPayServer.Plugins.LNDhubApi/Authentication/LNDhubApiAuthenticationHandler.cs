@@ -29,7 +29,7 @@ public class LNDhubApiAuthenticationHandler(
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        string authHeader = Context.Request.Headers.Authorization;
+        string? authHeader = Context.Request.Headers.Authorization;
         if (authHeader == null || !authHeader.StartsWith(AuthHeaderPrefix, StringComparison.InvariantCultureIgnoreCase))
             return AuthenticateResult.NoResult();
 
@@ -37,7 +37,7 @@ public class LNDhubApiAuthenticationHandler(
         var storeId = Context.GetCurrentStoreId();
         var isValid = authenticator.TryParseToken(token, out var userId, out var accessKey);
         var hasAccess = isValid && await authenticator.HasAccess(storeId, token);
-        if (!isValid || !hasAccess)
+        if (!isValid || !hasAccess || userId == null || accessKey == null)
         {
             return AuthenticateResult.Fail("No access");
         }
@@ -53,7 +53,7 @@ public class LNDhubApiAuthenticationHandler(
             new(LNDhubApiClaimTypes.AccessKey, accessKey),
             new(LNDhubApiClaimTypes.StoreId, store!.Id)
         };
-        claims.AddRange((await userManager.GetRolesAsync(user)).Select(s =>
+        claims.AddRange((await userManager.GetRolesAsync(user!)).Select(s =>
             new Claim(identityOptions.CurrentValue.ClaimsIdentity.RoleClaimType, s)));
         var claimsIdentity = new ClaimsIdentity(claims, LNDhubApiAuthenticationSchemes.AccessKey);
         var principal = new ClaimsPrincipal(claimsIdentity);
